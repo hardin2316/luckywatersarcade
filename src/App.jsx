@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { supabase } from './supabaseClient';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  async function createTestPlayer() {
+    setLoading(true);
+    setMessage('');
+
+    const username = 'testuser_' + Math.floor(Math.random() * 100000);
+    const email = username + '@example.com';
+
+  const { data, error } = await supabase
+  .from('players')
+  .insert({
+    username,
+    email,
+    balance_cents: 0,
+  })
+  .select()
+  .single();
+
+
+    if (error) {
+      console.error(error);
+      setMessage('Error: ' + error.message);
+    } else {
+      setMessage('Player created: ' + data.username);
+    }
+
+    setLoading(false);
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div
+      style={{
+        padding: '1.5rem',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+      }}
+    >
+      <h1>Lucky Waters Arcade</h1>
+      <p>Supabase test: click the button to create a player in the database.</p>
+      <button onClick={createTestPlayer} disabled={loading}>
+        {loading ? 'Creating…' : 'Create test player'}
+      </button>
+      {message && <p style={{ marginTop: '1rem' }}>{message}</p>}
+    </div>
+  );
 }
 
-export default App
+export default App;
